@@ -57,6 +57,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="screenshots\.keep">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="sst.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -71,9 +74,7 @@
       <Name>RedditSharp</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="screenshots\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="wkhtmltopdf\libeay32.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

@@ -46,6 +46,7 @@ namespace ScreenshotBot
             try
             {
                 reddit = new Reddit();
+                Reddit.UserAgent = "ScreenshotBot";
                 ini = new IniFile("sst.ini");
                 reddit.LogIn(ini.IniReadValue("ACCOUNT", "Username"), ini.IniReadValue("ACCOUNT", "Password"));
                 var inisub = ini.IniReadValue("BOT", "Subreddit");
@@ -83,7 +84,12 @@ namespace ScreenshotBot
                 start.Start();
 
                 var posts = sub.GetNew();
+                int i = 0;
+                int max = 24;
                 foreach(Post post in posts) {
+                    i++;
+                    if (i > max) 
+                        break;
                     if (Scan(post))
                     {
                         useWorker2 = !useWorker2;
@@ -101,8 +107,10 @@ namespace ScreenshotBot
 
                 var wait = 2000 - start.ElapsedMilliseconds;
                 wait = wait < 0 ? 0 : wait;
+                //we limit ourselves so f off
+                Reddit.EnableRateLimit = false;
 
-                Console.WriteLine(string.Format("Fetched {0} results. Sleeping {1} ms...", posts.Count(), wait));
+                Console.WriteLine(string.Format("Fetched {0} results. Sleeping {1} ms...", 25, wait));
                 Thread.Sleep(Convert.ToInt32(wait));
             }
         }
@@ -112,14 +120,12 @@ namespace ScreenshotBot
             if (post.IsSelfPost) return false;
             if(ProcessedURLs.Contains(post.Url)) return false;
             else ProcessedURLs.Add(post.Url);
+            if (Regex.IsMatch(post.Url, @"((\.exe|\.gif|\.jpg|\.pdf|\.png|\.tga))$")) return false;
 
             //domain detection
 
-            /*var domain = Regex.Matches(post.Url, "(?:http://|https://)([\\dA-Za-z]+\\.[\\d.A-Za-z]+)");
-            var subdomain = Regex.Matches(post.Url, "(?:http://|https://)[\\d.A-Za-z]+\\.([\\dA-Za-z]+\\.[A-Za-z]+)");*/
-
-            var domain = Regex.Matches(post.Url, "(?:http://|https://)[\\d.A-Za-z]+\\.([\\dA-Za-z]+\\.[A-Za-z]+)");
-            var subdomain = Regex.Matches(post.Url, "(?:http://|https://)([\\dA-Za-z]+\\.[\\d.A-Za-z]+)");
+            var subdomain = Regex.Matches(post.Url, "(?:http://|https://)[\\d.A-Za-z]+\\.([\\dA-Za-z]+\\.[A-Za-z]+)");
+            var domain = Regex.Matches(post.Url, "(?:http://|https://)([\\dA-Za-z]+\\.[\\d.A-Za-z]+)");
 
             if (domain.Count != 1) return false;
             string rdomain = domain[0].Groups[1].Value;
@@ -130,7 +136,10 @@ namespace ScreenshotBot
                 if(popular.isBlackListed(rsubdomain)) return false;
             }
 
+            
+            //Console.WriteLine("[PASS] " + domain[0].Groups[1] +"/"+(subdomain.Count > 0 ? subdomain[0].Groups[1].Value : "<none>"));
             return true;
+            //return false;
         }
 
         public static bool IsRunningOnMono()
